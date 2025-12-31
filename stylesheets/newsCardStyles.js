@@ -8,9 +8,33 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     elevation: 3,
   },
+  imageContainer: {
+    position: "relative",
+  },
   image: {
     width: "100%",
     height: 200,
+  },
+  favoriteButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 20,
+    padding: 8,
+  },
+  contentWithoutImage: {
+    position: "relative",
+    paddingTop: 15,
+    paddingLeft: 15,
+  },
+  favoriteButtonNoImage: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 20,
+    padding: 8,
   },
   content: {
     padding: 15,

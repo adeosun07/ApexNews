@@ -10,6 +10,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
+    paddingBottom: 0,
     backgroundColor: "#000",
   },
   appName: {
@@ -17,21 +18,37 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: "#00BFFF",
   },
-  searchContainer: {
-    padding: 20,
+  categoryScroll: {
+    maxHeight: 70,
+    backgroundColor: "#000",
   },
-  input: {
+  categoryContainer: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  categoryButton: {
     backgroundColor: "#1a1a1a",
-    color: "#fff",
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#333",
+    minHeight: 36,
+    justifyContent: "center",
+  },
+  categoryButtonActive: {
+    backgroundColor: "#00BFFF",
+    borderColor: "#00BFFF",
+  },
+  categoryText: {
     fontFamily: "Poppins-Regular",
-  },
-  picker: {
-    backgroundColor: "#1a1a1a",
+    fontSize: 14,
     color: "#fff",
-    marginBottom: 10,
+  },
+  categoryTextActive: {
+    color: "#000",
+    fontFamily: "Poppins-Bold",
   },
   searchButton: {
     backgroundColor: "#00BFFF",

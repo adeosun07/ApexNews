@@ -5,102 +5,106 @@ const NewsContext = createContext();
 
 export function NewsProvider({ children }) {
   const [news, setNews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchParams, setSearchParams] = useState({});
   const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState(null);
+  const [favorites, setFavorites] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("general");
 
-  const api = axios.create({
-    baseURL: process.env.EXPO_PUBLIC_NEWS_API_BASE_URL,
-    headers: {
-      Authorization: `Bearer ${process.env.EXPO_PUBLIC_NEWS_API_KEY}`,
-    },
-  });
+  const BASE_URL = process.env.EXPO_PUBLIC_NEWS_API_BASE_URL;
+  const API_KEY = process.env.EXPO_PUBLIC_NEWS_API_KEY;
 
-  const loadInitial = async () => {
-    setLoading(true);
-    setError(null);
+  const fetchNews = async (
+    pageNumber = 1,
+    replace = false,
+    category = selectedCategory
+  ) => {
     try {
-      const res = await api.get("/top-headlines", {
+      const res = await axios.get(`${BASE_URL}/top-headlines`, {
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+        },
         params: {
-          country: "us",
-          sources: "bbc-news",
-          pageSize: 3,
-          page: 1,
+          category: category,
+          page: pageNumber,
+          pageSize: 10,
         },
       });
-      setNews(res.data.articles);
-      setPage(1);
-      setHasMore(res.data.articles.length === 3);
-      setIsSearching(false);
-      setSearchParams({});
+
+      const articles = res.data.articles || [];
+
+      setHasMore(articles.length > 0);
+
+      setNews((prev) => (replace ? articles : [...prev, ...articles]));
+      setPage(pageNumber);
     } catch (e) {
       setError(e.message);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const searchNews = async (params) => {
+  // Initial load
+  useEffect(() => {
     setLoading(true);
-    setError(null);
-    try {
-      const res = await api.get("/everything", {
-        params: {
-          ...params,
-          pageSize: 10,
-          page: 1,
-        },
-      });
-      setNews(res.data.articles);
-      setPage(1);
-      setHasMore(res.data.articles.length === 10);
-      setIsSearching(true);
-      setSearchParams(params);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+    fetchNews(1, true).finally(() => setLoading(false));
+  }, []);
+
+  const refreshNews = async () => {
+    setRefreshing(true);
+    await fetchNews(1, true);
+    setRefreshing(false);
   };
 
   const loadMore = async () => {
-    if (!hasMore || loading) return;
+    if (loading || !hasMore) return;
     setLoading(true);
-    try {
-      const endpoint = isSearching ? "/everything" : "/top-headlines";
-      const params = isSearching
-        ? {
-            ...searchParams,
-            page: page + 1,
-            pageSize: 10,
-          }
-        : {
-            country: "us",
-            sources: "bbc-news",
-            page: page + 1,
-            pageSize: 3,
-          };
-      const res = await api.get(endpoint, { params });
-      setNews((prev) => [...prev, ...res.data.articles]);
-      setPage((prev) => prev + 1);
-      setHasMore(res.data.articles.length === (isSearching ? 10 : 3));
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+    await fetchNews(page + 1);
+    setLoading(false);
   };
 
-  useEffect(() => {
-    loadInitial();
-  }, []);
+  const changeCategory = async (category) => {
+    setSelectedCategory(category);
+    setPage(1);
+    setHasMore(true);
+    setLoading(true);
+    await fetchNews(1, true, category);
+    setLoading(false);
+  };
+
+  const addToFavorites = (article) => {
+    setFavorites((prev) => {
+      if (prev.some((fav) => fav.url === article.url)) {
+        return prev; // Already in favorites
+      }
+      return [...prev, article];
+    });
+  };
+
+  const removeFromFavorites = (articleUrl) => {
+    setFavorites((prev) => prev.filter((fav) => fav.url !== articleUrl));
+  };
+
+  const isFavorite = (articleUrl) => {
+    return favorites.some((fav) => fav.url === articleUrl);
+  };
 
   return (
     <NewsContext.Provider
-      value={{ news, loading, error, searchNews, loadMore, hasMore }}
+      value={{
+        news,
+        loading,
+        error,
+        refreshing,
+        refreshNews,
+        loadMore,
+        favorites,
+        addToFavorites,
+        removeFromFavorites,
+        isFavorite,
+        selectedCategory,
+        changeCategory,
+      }}
     >
       {children}
     </NewsContext.Provider>
